@@ -119,7 +119,8 @@
       form.querySelectorAll('.field').forEach(function(f){ f.classList.remove('error'); });
       required.forEach(function(n){
         var inp=form.querySelector('[name="'+n+'"]');
-        if(inp && !inp.value.trim()){ ok=false; inp.closest('.field').classList.add('error'); }
+        if(!inp || inp.offsetParent===null) return; // skip missing or hidden (conditional) fields
+        if(!inp.value.trim()){ ok=false; inp.closest('.field').classList.add('error'); }
       });
       var em=form.querySelector('[name="email"]');
       if(em && em.value.trim() && !isEmail(em.value.trim())){ ok=false; em.closest('.field').classList.add('error'); }
@@ -131,7 +132,23 @@
     });
   }
   handleForm('enquiryForm','enqMsg',['name','email','phone'],"Thank you. Your enquiry has been recorded — our team will come back with a straight answer on how we can help.");
-  handleForm('partnerForm','partMsg',['name','companyName','contact','email'],"Thank you for your interest in partnering with Synchronix. Our team will review your details and be in touch.");
+  handleForm('partnerForm','partMsg',['name','companyName','contact','email','vendorService','vendorOther'],"Thank you for your interest in partnering with Synchronix. Our team will review your details and be in touch.");
+
+  // partner form: reveal "please specify" text box only when "Others" is chosen
+  var vendorSel=document.querySelector('#partnerForm [name="vendorService"]');
+  var vendorOtherWrap=document.getElementById('vendorOtherWrap');
+  if(vendorSel && vendorOtherWrap){
+    var vendorOtherInput=vendorOtherWrap.querySelector('input');
+    var syncVendorOther=function(focusOnShow){
+      var show = vendorSel.value === 'Others - Please specify';
+      vendorOtherWrap.style.display = show ? '' : 'none';
+      if(show){ if(focusOnShow && vendorOtherInput) vendorOtherInput.focus(); }
+      else { if(vendorOtherInput) vendorOtherInput.value=''; vendorOtherWrap.classList.remove('error'); }
+    };
+    vendorSel.addEventListener('change', function(){ syncVendorOther(true); });
+    document.getElementById('partnerForm').addEventListener('reset', function(){ setTimeout(function(){ syncVendorOther(false); }, 0); });
+    syncVendorOther(false); // set correct state on load
+  }
 
   // cursor-tracked spotlight on cards
   if (window.matchMedia && window.matchMedia('(hover:hover)').matches) {
