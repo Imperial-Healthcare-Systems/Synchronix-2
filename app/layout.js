@@ -6,6 +6,12 @@ export const metadata = {
     "Synchronix Integrated Services LLP — an integrated 3PL partner offering warehousing, transportation, inventory management and supply chain advisory across India.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // edge-to-edge on notched phones
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">

@@ -110,7 +110,7 @@
 
   // form handling (no backend -> success message)
   function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
-  function handleForm(formId, msgId, required, successText){
+  function handleForm(formId, msgId, required, successText, formType){
     var form=document.getElementById(formId); if(!form) return;
     var msg=document.getElementById(msgId);
     form.addEventListener('submit', function(e){
@@ -126,28 +126,73 @@
       if(em && em.value.trim() && !isEmail(em.value.trim())){ ok=false; em.closest('.field').classList.add('error'); }
       msg.className='form-msg';
       if(!ok){ msg.classList.add('show','error'); msg.textContent='Please complete the required fields with valid details.'; return; }
-      msg.classList.add('show','success'); msg.textContent=successText;
-      form.reset();
-      msg.scrollIntoView({behavior:'smooth', block:'center'});
+
+      // collect all named fields (visible + hidden conditional fields are already cleared)
+      var payload={ _form: formType };
+      form.querySelectorAll('[name]').forEach(function(el){ payload[el.name]=el.value; });
+
+      var btn=form.querySelector('[type="submit"]');
+      var btnText=btn ? btn.innerHTML : '';
+      if(btn){ btn.disabled=true; btn.style.opacity='.7'; btn.innerHTML='Sending…'; }
+      msg.classList.add('show'); msg.textContent='Sending your details…';
+
+      fetch('/api/contact', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(r){ return r.json().then(function(j){ return { status:r.status, body:j }; }).catch(function(){ return { status:r.status, body:{ ok:r.ok } }; }); })
+      .then(function(res){
+        if(res.body && res.body.ok){
+          msg.className='form-msg show success'; msg.textContent=successText;
+          form.reset(); // also re-syncs conditional fields via the reset handler
+          msg.scrollIntoView({behavior:'smooth', block:'center'});
+        } else {
+          msg.className='form-msg show error';
+          msg.textContent='Sorry — we could not send your message right now. Please email info@synchronixintegrated.com directly.';
+        }
+      })
+      .catch(function(){
+        msg.className='form-msg show error';
+        msg.textContent='Network error. Please try again, or email info@synchronixintegrated.com directly.';
+      })
+      .then(function(){ if(btn){ btn.disabled=false; btn.style.opacity=''; btn.innerHTML=btnText; } });
     });
   }
-  handleForm('enquiryForm','enqMsg',['name','email','phone'],"Thank you. Your enquiry has been recorded — our team will come back with a straight answer on how we can help.");
-  handleForm('partnerForm','partMsg',['name','companyName','contact','email','vendorService','vendorOther'],"Thank you for your interest in partnering with Synchronix. Our team will review your details and be in touch.");
+  handleForm('enquiryForm','enqMsg',['name','email','phone'],"Thank you. Your enquiry has been recorded — our team will come back with a straight answer on how we can help.",'contact');
+  handleForm('partnerForm','partMsg',['name','companyName','contact','email','vendorService','vendorOther','regionDetail'],"Thank you for your interest in partnering with Synchronix. Our team will review your details and be in touch.",'partner');
 
-  // partner form: reveal "please specify" text box only when "Others" is chosen
-  var vendorSel=document.querySelector('#partnerForm [name="vendorService"]');
-  var vendorOtherWrap=document.getElementById('vendorOtherWrap');
-  if(vendorSel && vendorOtherWrap){
-    var vendorOtherInput=vendorOtherWrap.querySelector('input');
-    var syncVendorOther=function(focusOnShow){
-      var show = vendorSel.value === 'Others - Please specify';
-      vendorOtherWrap.style.display = show ? '' : 'none';
-      if(show){ if(focusOnShow && vendorOtherInput) vendorOtherInput.focus(); }
-      else { if(vendorOtherInput) vendorOtherInput.value=''; vendorOtherWrap.classList.remove('error'); }
+  // generic helper: reveal a "please specify" box when a select hits certain values
+  function conditionalDetail(selectEl, wrapEl, showValues){
+    if(!selectEl || !wrapEl) return null;
+    var input=wrapEl.querySelector('input');
+    var sync=function(focusOnShow){
+      var show = showValues.indexOf(selectEl.value) !== -1;
+      wrapEl.style.display = show ? '' : 'none';
+      if(show){ if(focusOnShow && input) input.focus(); }
+      else { if(input) input.value=''; wrapEl.classList.remove('error'); }
     };
-    vendorSel.addEventListener('change', function(){ syncVendorOther(true); });
-    document.getElementById('partnerForm').addEventListener('reset', function(){ setTimeout(function(){ syncVendorOther(false); }, 0); });
-    syncVendorOther(false); // set correct state on load
+    selectEl.addEventListener('change', function(){ sync(true); });
+    sync(false); // initial state
+    return sync;
+  }
+
+  // partner form conditional fields
+  var partnerFormEl=document.getElementById('partnerForm');
+  var syncVendorOther=conditionalDetail(
+    document.querySelector('#partnerForm [name="vendorService"]'),
+    document.getElementById('vendorOtherWrap'),
+    ['Others - Please specify']
+  );
+  var syncRegionDetail=conditionalDetail(
+    document.querySelector('#partnerForm [name="region"]'),
+    document.getElementById('regionDetailWrap'),
+    ['Region-specific', 'Multi-region']
+  );
+  if(partnerFormEl){
+    partnerFormEl.addEventListener('reset', function(){
+      setTimeout(function(){ if(syncVendorOther) syncVendorOther(false); if(syncRegionDetail) syncRegionDetail(false); }, 0);
+    });
   }
 
   // cursor-tracked spotlight on cards

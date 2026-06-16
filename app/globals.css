@@ -938,3 +938,74 @@ main { position:relative; z-index:2; }
 @keyframes wa-ring{ 0%{ transform:scale(1); opacity:.6; } 100%{ transform:scale(1.6); opacity:0; } }
 @media (max-width:560px){ .wa-float{ right:16px; bottom:16px; width:52px; height:52px; } .wa-float svg{ width:30px; height:30px; } }
 @media (prefers-reduced-motion:reduce){ .wa-float, .wa-float::after{ animation:none; } }
+
+
+/* ============================================================
+   MOBILE OPTIMIZATION PASS (frontend engineering)
+   Conservative refinements layered on top of existing breakpoints.
+   ============================================================ */
+
+/* Defensive: media never forces horizontal scroll */
+img, svg, video, canvas { max-width:100%; height:auto; }
+.split-figure img, .hero-scene img, .fig-scene img { height:100%; } /* keep cover-fill figures intact */
+
+/* Prevent iOS Safari auto-zoom on focus (needs >=16px on form controls) */
+@media (max-width:760px){
+  input, select, textarea { font-size:16px; }
+}
+
+/* --- Phones (<=560px): tighter rhythm, calmer type, no overlap chips --- */
+@media (max-width:560px){
+  .section { padding:64px 0; }
+  .section-sm { padding:46px 0; }
+  .section-head { margin-bottom:38px; }
+
+  /* Scale down the large heading minimums for narrow screens */
+  .hero h1 { font-size:clamp(2.05rem,8.5vw,2.7rem); line-height:1.08; }
+  .section-head h2,
+  .split h2, .coverage-copy h2, .intro-block h2,
+  .detail-copy h2, .whoweare-intro h2 { font-size:clamp(1.7rem,6.6vw,2.2rem); line-height:1.12; }
+  .hero-sub { font-size:1.08rem; }
+  .hero-lead { font-size:1rem; }
+  .section-lead, .intro-block p { font-size:1.04rem; line-height:1.65; }
+
+  /* Big serif numbers: trim so they do not dominate the viewport */
+  .stat-num { font-size:clamp(2.1rem,10vw,2.8rem); }
+  .cstat-num { font-size:1.9rem; }
+
+  /* Floating hero stat chip overlaps the panel on small screens -> hide */
+  .hero-float { display:none; }
+
+  /* Comfortable primary tap targets */
+  .btn { padding:14px 22px; }
+  .nav-cta .btn, .menu-cta .btn { min-height:48px; }
+
+  /* Calmer marquees */
+  .ticker-track { gap:36px; }
+}
+
+/* --- Small phones (<=380px): final squeeze --- */
+@media (max-width:380px){
+  .container { padding:0 16px; }
+  .hero h1 { font-size:1.9rem; }
+  .section-head h2, .split h2, .coverage-copy h2 { font-size:1.55rem; }
+  .brand-logo { height:40px; }
+  .footer-brand .fb-mark img { height:64px; }
+  .btn { width:100%; justify-content:center; }
+}
+
+
+/* ============================================================
+   JUSTIFIED BODY TEXT (per request)
+   Running prose is justified across the site. Headings, nav,
+   buttons, labels, eyebrows, stats and intentionally-centered
+   intros keep their original alignment. hyphens:auto keeps the
+   spacing tight (avoids justified "rivers").
+   ============================================================ */
+p { text-align:justify; -webkit-hyphens:auto; hyphens:auto; }
+
+/* keep intentionally-centered prose centered */
+.section-head.center p,
+.cta p,
+.partner-intro p,
+.partner-intro { text-align:center; }
