@@ -325,7 +325,7 @@ export const BODY_HTML = `
 </section>
 </div>
 <div class="page-view" id="view-services">
-<section class="page-hero photo bg-truck">
+<section class="page-hero photo bg-truck" style="background-image:url(/hero-banner.png)">
   <div class="ph-scrim"></div>
   <div class="container">
     <div class="breadcrumbs"><a data-go="home">Home</a><span class="sep">/</span><span>Services</span></div>
@@ -803,7 +803,7 @@ export const BODY_HTML = `
 </section>
 </div>
 <div class="page-view" id="view-industries">
-<section class="page-hero photo bg-skyline">
+<section class="page-hero photo bg-skyline" style="background-image:url(/hero-banner.png)">
   <div class="ph-scrim"></div>
   <div class="container">
     <div class="breadcrumbs"><a data-go="home">Home</a><span class="sep">/</span><span>Industries</span></div>
@@ -896,7 +896,7 @@ export const BODY_HTML = `
 </section>
 </div>
 <div class="page-view" id="view-case-studies">
-<section class="page-hero photo bg-skyline">
+<section class="page-hero photo bg-skyline" style="background-image:url(/hero-banner.png)">
   <div class="ph-scrim"></div>
   <div class="container">
     <div class="breadcrumbs"><a data-go="home">Home</a><span class="sep">/</span><span>Case Studies</span></div>
